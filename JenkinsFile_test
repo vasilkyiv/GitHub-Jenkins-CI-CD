@@ -1,0 +1,36 @@
+#!/usr/bin/env groovy
+
+pipeline {
+  agent none
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    disableResume()
+    skipDefaultCheckout(true)
+    timestamps()
+    quietPeriod 30
+  } // options
+    
+  stages {
+    stage('Deploy') {
+       agent {
+        docker {
+          alwaysPull true
+          image 'mcr.microsoft.com/azure-cli'
+          args "-e AZURE_CONFIG_DIR=/tmp/.azure"
+        } // docker
+      } // agent
+       steps {
+         
+           {
+            sh 'az --version'
+            } // dir
+         } // steps
+      post {
+        always {
+          cleanWs()
+        } // always
+      } // post
+    } // stage
+  } // stages
+} // pipeline
